@@ -5,5 +5,6 @@ import path from 'path';
 const app = express();
 const server = http.createServer(app);
 
+port = 3000;
 app.use(express.static(path.resolve('./public')));
-server.listen(300,()=> console.log(`Http server is running on PORT 3000`));
+server.listen(port,()=> console.log(`Http server is running on PORT 3000`));
