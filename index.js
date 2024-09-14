@@ -1,8 +1,12 @@
-import http from 'http';
-import express from 'express';
-import { spawn } from 'child_process';
-import path from 'path';
-import {Server as SocketIO} from 'socket.io';
+import http from 'http'
+import path from 'path'
+import { spawn } from 'child_process'
+import express from 'express'
+import { Server as SocketIO } from 'socket.io'
+
+const app = express();
+const server = http.createServer(app);
+const io = new SocketIO(server)
 
 const options = [
     '-i',
@@ -22,24 +26,36 @@ const options = [
     '-b:a', '128k',
     '-ar', 128000 / 4,
     '-f', 'flv',
-    `rtmp://a.rtmp.youtube.com/live2/`,
+    `rtmp://a.rtmp.youtube.com/live2/dcfx-m7v2-j248-3185-9207`,
 ];
 
 const ffmpegProcess = spawn('ffmpeg', options);
-const app = express();
-const server = http.createServer(app);
-const io = new SocketIO(server);
+
+ffmpegProcess.stdout.on('data', (data) => {
+    console.log(`ffmpeg stdout: ${data}`);
+});
+
+ffmpegProcess.stderr.on('data', (data) => {
+    console.error(`ffmpeg stderr: ${data}`);
+});
+
+ffmpegProcess.on('close', (code) => {
+    console.log(`ffmpeg process exited with code ${code}`);
+});
 
 
 
+app.use(express.static(path.resolve('./public')))
 
-app.use(express.static(path.resolve('./public')));
 
-io.on('connection', socket =>{
-    console.log('socket Coonected : ' , socket.id);
-    socket.on('binarystream', stream =>{
-
+io.on('connection', socket => {
+    console.log('Socket Connected', socket.id);
+    socket.on('binarystream', stream => {
+        console.log('Binary Stream Incommming...')
+        ffmpegProcess.stdin.write(stream, (err) => {
+            console.log('Err', err)
+        })
     })
 })
 
-server.listen(3000,()=> console.log(`Http server is running on PORT 3000`));
+server.listen(3000, () => console.log(`HTTP Server is runnning on PORT 3000`))
