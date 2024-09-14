@@ -1,0 +1,9 @@
+services:
+  app:
+    build:
+      context:
+        dockerfile: ./Dockerfile
+      Volumes:
+        - ./:/home/app
+      ports:
+        - 3000:3000
